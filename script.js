@@ -31,14 +31,39 @@ async function apiCall(endpoint, method = 'GET', body = null) {
     
     try {
         const response = await fetch(`${API_BASE_URL}${endpoint}`, options);
+        
+        // Check if response is JSON
+        const contentType = response.headers.get('content-type');
+        const isJson = contentType && contentType.includes('application/json');
+        
         if (!response.ok) {
-            const error = await response.json();
-            throw new Error(error.error || 'API request failed');
+            let errorMessage = `API request failed (${response.status})`;
+            if (isJson) {
+                try {
+                    const error = await response.json();
+                    errorMessage = error.error || error.message || errorMessage;
+                } catch (e) {
+                    // Failed to parse error JSON
+                }
+            } else {
+                // Response is HTML (error page)
+                const text = await response.text();
+                console.error('Non-JSON error response:', text.substring(0, 200));
+                errorMessage = `Server returned HTML instead of JSON. Check if API endpoint exists: ${endpoint}`;
+            }
+            throw new Error(errorMessage);
         }
+        
+        if (!isJson) {
+            const text = await response.text();
+            console.error('Expected JSON but got:', text.substring(0, 200));
+            throw new Error(`Invalid response format. Expected JSON but received: ${contentType || 'unknown'}`);
+        }
+        
         return await response.json();
     } catch (error) {
         console.error('API Error:', error);
-        alert(`Error: ${error.message}`);
+        console.error('Failed endpoint:', `${API_BASE_URL}${endpoint}`);
         throw error;
     }
 }

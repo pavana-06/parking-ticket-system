@@ -10,6 +10,12 @@ app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+// Set JSON content type for all API responses
+app.use((req, res, next) => {
+    res.setHeader('Content-Type', 'application/json');
+    next();
+});
+
 // Initialize database
 let db;
 let dbPromise = null;
@@ -272,6 +278,20 @@ app.post('/tickets/:id/exit', (req, res) => {
                 });
         });
     });
+});
+
+// Error handler middleware (must be last)
+app.use((err, req, res, next) => {
+    console.error('Express error:', err);
+    res.status(err.status || 500).json({ 
+        error: err.message || 'Internal server error',
+        details: process.env.NODE_ENV === 'development' ? err.stack : undefined
+    });
+});
+
+// 404 handler for API routes
+app.use((req, res) => {
+    res.status(404).json({ error: `API endpoint not found: ${req.method} ${req.path}` });
 });
 
 // Export as Vercel serverless function handler
