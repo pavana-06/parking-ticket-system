@@ -37,25 +37,34 @@ app.use(async (req, res, next) => {
         await ensureDatabase();
         next();
     } catch (err) {
-        res.status(500).json({ error: 'Database initialization failed' });
+        console.error('Database initialization error:', err);
+        res.status(500).json({ error: 'Database initialization failed', details: err.message });
     }
 });
 
 // ==================== API ROUTES ====================
 
 // Get all parking slots
-app.get('/slots', (req, res) => {
-    db.all("SELECT * FROM parking_slots ORDER BY slot_number", (err, rows) => {
-        if (err) {
-            res.status(500).json({ error: err.message });
-        } else {
-            res.json(rows.map(row => ({
-                id: row.slot_number,
-                available: row.available === 1,
-                ticketId: row.ticket_id
-            })));
-        }
-    });
+app.get('/slots', async (req, res) => {
+    try {
+        const database = await ensureDatabase();
+        database.all("SELECT * FROM parking_slots ORDER BY slot_number", (err, rows) => {
+            if (err) {
+                console.error('Error fetching slots:', err);
+                res.status(500).json({ error: err.message });
+            } else {
+                console.log(`Fetched ${rows.length} slots`);
+                res.json(rows.map(row => ({
+                    id: row.slot_number,
+                    available: row.available === 1,
+                    ticketId: row.ticket_id
+                })));
+            }
+        });
+    } catch (err) {
+        console.error('Error in /slots endpoint:', err);
+        res.status(500).json({ error: 'Failed to get database', details: err.message });
+    }
 });
 
 // Get available slots only

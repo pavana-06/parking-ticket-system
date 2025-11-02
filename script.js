@@ -62,7 +62,13 @@ async function initParkingSystem() {
         renderActiveTickets();
     } catch (error) {
         console.error('Failed to initialize parking system:', error);
-        alert('Failed to connect to server. Please ensure the backend server is running on port 3000.');
+        const errorMsg = error.message || 'Unknown error';
+        console.error('API Error Details:', errorMsg);
+        // Show error in UI instead of alert
+        const slotsGrid = document.getElementById('slotsGrid');
+        if (slotsGrid) {
+            slotsGrid.innerHTML = `<p style="color: red; padding: 20px;">Error loading slots: ${errorMsg}. Check browser console for details.</p>`;
+        }
     }
 }
 
