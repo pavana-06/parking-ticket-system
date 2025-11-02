@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Automated Parking Slot Ticket System</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🚗 Automated Parking Management</h1>
+            <p class="subtitle">Smart Parking Slot Ticket System</p>
+        </header>
+
+        <div class="main-content">
+            <!-- Parking Slots Display -->
+            <section class="parking-slots">
+                <h2>Available Parking Slots</h2>
+                <div class="slots-grid" id="slotsGrid">
+                    <!-- Slots will be generated dynamically -->
+                </div>
+            </section>
+
+            <!-- Ticket Generation Form -->
+            <section class="ticket-form">
+                <h2>Generate Parking Ticket</h2>
+                <form id="ticketForm">
+                    <div class="form-group">
+                        <label for="vehicleNumber">Vehicle Number:</label>
+                        <input type="text" id="vehicleNumber" placeholder="ABC-1234" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="vehicleType">Vehicle Type:</label>
+                        <select id="vehicleType" required>
+                            <option value="">Select Type</option>
+                            <option value="car">Car</option>
+                            <option value="motorcycle">Motorcycle</option>
+                            <option value="truck">Truck</option>
+                            <option value="suv">SUV</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="selectedSlot">Select Slot:</label>
+                        <select id="selectedSlot" required>
+                            <option value="">Select Available Slot</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="driverName">Driver Name:</label>
+                        <input type="text" id="driverName" placeholder="Enter driver name" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="contactNumber">Contact Number:</label>
+                        <input type="tel" id="contactNumber" placeholder="+91 9876543210" required>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Generate Ticket</button>
+                </form>
+            </section>
+
+            <!-- Active Tickets Display -->
+            <section class="active-tickets">
+                <h2>Active Parking Tickets</h2>
+                <div class="tickets-container" id="ticketsContainer">
+                    <p class="no-tickets">No active tickets</p>
+                </div>
+            </section>
+
+            <!-- Ticket Details Modal -->
+            <div id="ticketModal" class="modal">
+                <div class="modal-content">
+                    <span class="close">&times;</span>
+                    <div class="ticket-preview" id="ticketPreview">
+                        <!-- Ticket will be generated here -->
+                    </div>
+                    <button class="btn btn-print" onclick="window.print()">Print Ticket</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
