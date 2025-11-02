@@ -1,5 +1,5 @@
-// API Configuration
-const API_BASE_URL = 'http://localhost:3000/api';
+// API Configuration - Auto-detect URL for local and Vercel
+const API_BASE_URL = window.location.origin + '/api';
 
 // Parking System Configuration
 const PARKING_CONFIG = {
