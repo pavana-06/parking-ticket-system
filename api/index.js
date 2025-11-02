@@ -2,7 +2,6 @@
 const express = require('express');
 const cors = require('cors');
 const { getDatabase } = require('../database');
-const path = require('path');
 
 const app = express();
 
@@ -13,21 +12,29 @@ app.use(express.urlencoded({ extended: true }));
 
 // Initialize database
 let db;
-let dbPromise = getDatabase().then(database => {
-    db = database;
-    console.log('Database initialized successfully');
-    return database;
-}).catch(err => {
-    console.error('Database initialization failed:', err);
-    throw err;
-});
+let dbPromise = null;
+
+async function ensureDatabase() {
+    if (!db) {
+        if (!dbPromise) {
+            dbPromise = getDatabase().then(database => {
+                db = database;
+                console.log('Database initialized successfully');
+                return database;
+            }).catch(err => {
+                console.error('Database initialization failed:', err);
+                throw err;
+            });
+        }
+        db = await dbPromise;
+    }
+    return db;
+}
 
 // Wait for database before handling requests
 app.use(async (req, res, next) => {
     try {
-        if (!db) {
-            db = await dbPromise;
-        }
+        await ensureDatabase();
         next();
     } catch (err) {
         res.status(500).json({ error: 'Database initialization failed' });
@@ -37,7 +44,7 @@ app.use(async (req, res, next) => {
 // ==================== API ROUTES ====================
 
 // Get all parking slots
-app.get('/api/slots', (req, res) => {
+app.get('/slots', (req, res) => {
     db.all("SELECT * FROM parking_slots ORDER BY slot_number", (err, rows) => {
         if (err) {
             res.status(500).json({ error: err.message });
@@ -52,7 +59,7 @@ app.get('/api/slots', (req, res) => {
 });
 
 // Get available slots only
-app.get('/api/slots/available', (req, res) => {
+app.get('/slots/available', (req, res) => {
     db.all("SELECT * FROM parking_slots WHERE available = 1 ORDER BY slot_number", (err, rows) => {
         if (err) {
             res.status(500).json({ error: err.message });
@@ -66,7 +73,7 @@ app.get('/api/slots/available', (req, res) => {
 });
 
 // Get all active tickets
-app.get('/api/tickets/active', (req, res) => {
+app.get('/tickets/active', (req, res) => {
     db.all(`SELECT * FROM tickets WHERE status = 'active' ORDER BY entry_time DESC`, (err, rows) => {
         if (err) {
             res.status(500).json({ error: err.message });
@@ -86,7 +93,7 @@ app.get('/api/tickets/active', (req, res) => {
 });
 
 // Get all tickets
-app.get('/api/tickets', (req, res) => {
+app.get('/tickets', (req, res) => {
     db.all("SELECT * FROM tickets ORDER BY entry_time DESC LIMIT 100", (err, rows) => {
         if (err) {
             res.status(500).json({ error: err.message });
@@ -108,7 +115,7 @@ app.get('/api/tickets', (req, res) => {
 });
 
 // Get single ticket by ID
-app.get('/api/tickets/:id', (req, res) => {
+app.get('/tickets/:id', (req, res) => {
     const ticketId = req.params.id;
     db.get("SELECT * FROM tickets WHERE id = ?", [ticketId], (err, row) => {
         if (err) {
@@ -133,7 +140,7 @@ app.get('/api/tickets/:id', (req, res) => {
 });
 
 // Create new ticket
-app.post('/api/tickets', (req, res) => {
+app.post('/tickets', (req, res) => {
     const { vehicleNumber, vehicleType, slotId, driverName, contactNumber, ticketId } = req.body;
 
     if (!vehicleNumber || !vehicleType || !slotId || !driverName || !contactNumber || !ticketId) {
@@ -192,7 +199,7 @@ app.post('/api/tickets', (req, res) => {
 });
 
 // Exit parking (checkout)
-app.post('/api/tickets/:id/exit', (req, res) => {
+app.post('/tickets/:id/exit', (req, res) => {
     const ticketId = req.params.id;
     const hourlyRates = {
         car: 5,
@@ -258,5 +265,5 @@ app.post('/api/tickets/:id/exit', (req, res) => {
     });
 });
 
-// Export as Vercel serverless function
+// Export as Vercel serverless function handler
 module.exports = app;
